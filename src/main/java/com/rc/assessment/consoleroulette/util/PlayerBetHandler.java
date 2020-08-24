@@ -1,12 +1,14 @@
 package com.rc.assessment.consoleroulette.util;
 
 import com.rc.assessment.consoleroulette.model.Bet;
+import com.rc.assessment.consoleroulette.model.Player;
 import com.rc.assessment.consoleroulette.model.PlayerBet;
 import com.rc.assessment.consoleroulette.model.Type;
 import com.rc.assessment.consoleroulette.repository.PlayerRepository;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,13 +16,12 @@ import java.util.regex.Pattern;
 @Component
 public class PlayerBetHandler {
 
-    private String oddNumberRegex = "ODD";
-    private String evenNumberRegex = "EVEN";
-
     private static final String BET_NUMBER_REGEX = "[1-9]|1[0-9]|2[0-9]|3[0-6]";
+    private static final String ODD_NUMBER_REGEX = "ODD";
+    private static final String EVEN_NUMBER_REGEX = "EVEN";
     private static final Pattern BET_NUMBER_PATTERN = Pattern.compile(BET_NUMBER_REGEX);
     private static final Pattern PLAYER_BET_PATTERN =
-            Pattern.compile(String.format("(\\w+)\\s(%s|%s|%s)\\s(\\d+|\\d+\\.\\d+)", BET_NUMBER_REGEX, oddNumberRegex, evenNumberRegex));
+            Pattern.compile(String.format("(\\w+)\\s(%s|%s|%s)\\s(\\d+|\\d+\\.\\d+)", BET_NUMBER_REGEX, ODD_NUMBER_REGEX, EVEN_NUMBER_REGEX));
 
     private final PlayerRepository playerRepository;
 
@@ -41,6 +42,10 @@ public class PlayerBetHandler {
         });
     }
 
+    private Optional<Player> findPlayer(String name) {
+        return playerRepository.getRegisteredPlayers().stream().filter(p -> Objects.equals(p.getName(), name)).findAny();
+    }
+
     private Bet crateBet(Matcher playerBetMatcher) {
         String betGroup = playerBetMatcher.group(2);
         String betAmountGroup = playerBetMatcher.group(3);
@@ -52,5 +57,21 @@ public class PlayerBetHandler {
         return new Bet(betNumber, betAmount, betType);
     }
 
+    private Optional<Integer> parseBetNumber(String bet) {
+        Matcher betNumberMatcher = BET_NUMBER_PATTERN.matcher(bet);
+        if (betNumberMatcher.matches()) {
+            return Optional.of(new Integer(betNumberMatcher.group()));
+        }
+        return Optional.empty();
+    }
 
+    private Type parseBetType(String bet) {
+        if (Pattern.matches(ODD_NUMBER_REGEX, bet)) {
+            return Type.ODD;
+        } else if (Pattern.matches(EVEN_NUMBER_REGEX, bet)) {
+            return Type.EVEN;
+        } else {
+            return Type.NUMBER;
+        }
+    }
 }
