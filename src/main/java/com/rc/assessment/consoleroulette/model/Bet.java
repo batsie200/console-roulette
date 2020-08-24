@@ -10,7 +10,6 @@ import java.util.concurrent.atomic.AtomicReference;
 @Getter
 @Setter
 public class Bet {
-
     
     private final Optional<Integer> betNumber;
     private final BigDecimal betAmount;
