@@ -34,4 +34,4 @@ public class PlayerBoostrapImpl implements PlayerBoostrap {
             throw new RuntimeException("Failed to load players " + e.getMessage(), e);
         }
     }
-    }
+}
